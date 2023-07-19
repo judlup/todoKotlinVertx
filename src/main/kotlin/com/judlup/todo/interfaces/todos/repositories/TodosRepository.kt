@@ -1,11 +1,13 @@
 package com.judlup.todo.interfaces.todos.repositories
 
 import com.judlup.todo.models.todos.Todo
+import io.vertx.core.Future
+
 
 interface TodosRepository {
-  fun get(): List<Todo>?
-  fun getById(id: String): Todo?
-  fun create(todo: Todo): Todo
-  fun update(id: String, todo: Todo): Boolean
-  fun delete(id: String): Boolean
+  fun get(): Future<List<Todo>?>
+  fun getById(id: String): Future<Todo>
+  fun create(todo: Todo): Future<Todo>
+  fun update(id: String, todo: Todo): Future<Boolean>
+  fun delete(id: String): Future<Boolean>
 }

@@ -15,56 +15,105 @@ class TodosControllerImpl: TodosController {
   private val todosServiceImpl = TodosServiceImpl(todosRepositoryImpl)
 
   override fun get(ctx: RoutingContext) {
-      val todos = todosServiceImpl.get()
-      val map = mapOf("data" to todos)
-      val response = Json.encodePrettily(map)
-      ctx.response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(response)
+      var result: List<Todo>? = null
+      todosServiceImpl.get().onComplete { ar ->
+        if(ar.succeeded()){
+          result = ar.result()
+          val map = mapOf("data" to result)
+          val response = Json.encodePrettily(map)
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(200)
+            .end(response)
+        } else{
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(500)
+            .end()
+        }
+      }
+
   }
 
   override fun getById(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
-    val todo = todosServiceImpl.getById(id)
-    val map = mapOf("data" to todo)
-    val response = Json.encodePrettily(todo)
-      ctx.response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(response)
+    val todo = todosServiceImpl.getById(id).onComplete { ar ->
+      if(ar.succeeded()){
+        val map = mapOf("data" to ar.result())
+        val response = Json.encodePrettily(map)
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(200)
+            .end(response)
+      }else{
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(404)
+            .end()
+      }
+    }
+
   }
 
   override fun create(ctx: RoutingContext) {
     val body = ctx.body().asJsonObject()
+    var res: Todo? = null
     val newTodo = Todo(title = body.getString("title"))
-    val newTodoCreated = todosServiceImpl.create(newTodo)
-    val map = mapOf("data" to newTodoCreated,"success" to true)
-    ctx.response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(Json.encodePrettily(map))
+    todosServiceImpl.create(newTodo).onComplete { ar ->
+      if(ar.succeeded()){
+        res = Todo(ar.result().id, ar.result().title, ar.result().completed, ar.result().createdAt, ar.result().status)
+        val map = mapOf("data" to res,"success" to true)
+        ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(200)
+            .end(Json.encodePrettily(map))
+      }else{
+        ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(500)
+            .end()
+      }
+    }
   }
 
   override fun update(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
     val body = ctx.body().asJsonObject()
     val todo = Todo(UUID.fromString(id),body.getString("title"), body.getString("completed").toBoolean(), body.getString("createdAt").toLong(), body.getString("status").toBoolean())
-    val updateTodo = todosServiceImpl.update(id, todo)
-    val response = mapOf("data" to updateTodo,"success" to true)
-    ctx.response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(Json.encodePrettily(response))
+    val updateTodo = todosServiceImpl.update(id, todo).onComplete { ar ->
+      if(ar.succeeded()){
+        val result = ar.result()
+        val response = mapOf("data" to result,"success" to true)
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(200)
+          .end(Json.encodePrettily(response))
+      }else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(500)
+          .end()
+      }
+    }
   }
 
   override fun delete(ctx: RoutingContext) {
     val id = ctx.pathParam("id")
-    val deleteTodo = todosServiceImpl.delete(id)
-    val response = mapOf("data" to deleteTodo, "success" to true)
-      ctx.response()
-        .putHeader("content-type", "application/json")
-        .setStatusCode(200)
-        .end(Json.encodePrettily(response))
+    val deleteTodo = todosServiceImpl.delete(id).onComplete { ar ->
+      if(ar.succeeded()){
+        val result = ar.result()
+        val response = mapOf("data" to result, "success" to true)
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(200)
+          .end(Json.encodePrettily(response))
+      }else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(500)
+          .end()
+      }
+    }
+
   }
 }
