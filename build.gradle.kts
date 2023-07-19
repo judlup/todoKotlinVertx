@@ -43,6 +43,9 @@ dependencies {
   implementation("io.netty:netty-resolver-dns-native-macos:4.1.90.Final")
   implementation("io.netty:netty-all:4.1.90.Final")
   implementation("io.vertx:vertx-pg-client:4.4.0")
+  implementation("org.postgresql:postgresql:42.5.4")
+  implementation("io.vertx:vertx-pg-client:4.4.0")
+  implementation("io.vertx:vertx-lang-kotlin-coroutines:4.4.0")
 }
 
 val compileKotlin: KotlinCompile by tasks
